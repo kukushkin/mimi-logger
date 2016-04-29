@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'A pre-configured logger for microservice applications'
   spec.description   = 'A pre-configured logger for microservice applications'
-  spec.homepage      = 'https://https://github.com/kukushkin/mimi-logger'
+  spec.homepage      = 'https://github.com/kukushkin/mimi-logger'
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
