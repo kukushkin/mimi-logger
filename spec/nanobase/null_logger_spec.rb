@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Nanobase::Logger::NullLogger do
+describe Mimi::Logger::NullLogger do
   let(:string_buffer) { StringIO.new }
   let(:log) { string_buffer.rewind; string_buffer.readlines.join("\n") }
 

@@ -1,13 +1,13 @@
 require 'spec_helper'
 
-describe Nanobase::Logger do
+describe Mimi::Logger do
   let(:string_buffer) { StringIO.new }
   let(:log) { string_buffer.rewind; string_buffer.readlines.join("\n") }
 
   subject { described_class.new(string_buffer) }
 
   it 'has a version number' do
-    expect(Nanobase::Logger::VERSION).not_to be nil
+    expect(Mimi::Logger::VERSION).not_to be nil
   end
 
   it 'can be created' do

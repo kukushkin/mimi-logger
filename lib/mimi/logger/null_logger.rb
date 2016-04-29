@@ -1,4 +1,4 @@
-module Nanobase
+module Mimi
   class Logger
     class NullLogger
       def initialize(*)
@@ -22,7 +22,6 @@ module Nanobase
       def level; end
 
       def level=(*); end
-
     end # class NullLogger
   end # class Logger
-end # module Nanobase
+end # module Mimi

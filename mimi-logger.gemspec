@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'nanobase/logger/version'
+require 'mimi/logger/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'nanobase-logger'
-  spec.version       = Nanobase::Logger::VERSION
+  spec.name          = 'mimi-logger'
+  spec.version       = Mimi::Logger::VERSION
   spec.authors       = ['Alex Kukushkin']
   spec.email         = ['alex@kukushk.in']
 
   spec.summary       = 'A pre-configured logger for microservice applications'
   spec.description   = 'A pre-configured logger for microservice applications'
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = 'https://https://github.com/kukushkin/mimi-logger'
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
@@ -26,6 +26,8 @@ Gem::Specification.new do |spec|
   spec.bindir        = 'exe'
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
+
+  spec.add_dependency 'mimi-core'
 
   spec.add_development_dependency 'bundler', '~> 1.11'
   spec.add_development_dependency 'rake', '~> 10.0'
