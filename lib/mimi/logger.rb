@@ -18,7 +18,8 @@ module Mimi
     ] => :logger_instance
 
     default_options(
-      level: 'info'
+      level: 'info',
+      cr_character: '↲' # alternative CR: ↵ ↲ ⏎
     )
 
     # Creates a new Logger instance
@@ -91,7 +92,7 @@ module Mimi
 
     def self.formatter
       proc do |severity, _datetime, _progname, message|
-        "#{severity.to_s[0]}, #{message}\n"
+        "#{severity.to_s[0]}, #{message.to_s.tr("\n", module_options[:cr_character])}\n"
       end
     end
   end # class Logger
