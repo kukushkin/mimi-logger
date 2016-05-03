@@ -95,6 +95,15 @@ module Mimi
         "#{severity.to_s[0]}, #{message.to_s.tr("\n", module_options[:cr_character])}\n"
       end
     end
+
+    def self.module_manifest
+      {
+        log_level: {
+          desc: 'Logging level (any of the "debug", "info", "warn", "error", "fatal")',
+          default: 'info'
+        }
+      }
+    end
   end # class Logger
 end # module Mimi
 
