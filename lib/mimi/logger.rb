@@ -45,7 +45,7 @@ module Mimi
       opts = self.class.module_options.deep_merge(opts)
       @logger_instance = ::Logger.new(io)
       @logger_instance.level = self.class.level_from_any(opts[:level])
-      io.sync if io.respond_to?(:sync)
+      io.sync = true if io.respond_to?(:sync=)
       @logger_instance.formatter = self.class.formatter
     end
 
