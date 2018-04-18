@@ -25,10 +25,92 @@ Or install it yourself as:
 ```ruby
 require 'mimi/logger'
 
-logger = Mimi::Logger.new
+logger = Mimi::Logger.new format: :string
 
 logger.info 'I am a banana!' # outputs "I, I am a banana!" to STDOUT
 ```
+
+### Logging format
+
+Since v0.2.0 the default format for logging is JSON:
+
+```ruby
+require 'mimi/logger'
+
+logger = Mimi::Logger.new
+
+logger.info 'I am a banana' # => '{"s":"I","m":"I am a banana","c":"60eecc2e764fe2f6"}'
+```
+
+The following properties of a serialized JSON object are reserved:
+
+name | description
+-----|------------
+  s  | severity, one of D,I,W,E,F
+  m  | message
+  c  | context ID, 8 bytes hex encoded
+
+Additional properties may be provided by the caller and they will be included in the logged JSON:
+
+```ruby
+require 'mimi/logger'
+
+logger = Mimi::Logger.new
+
+t_start = Time.now
+... # work, work
+logger.info 'Jobs done', t: Time.now - t_start
+# => '{"s":"I","m":"Jobs done","c":"60eecc2e764fe2f6", "t": 13.794034499}'
+```
+
+### Logging context
+
+Logging context refers to a set of instructions that are somehow logically grouped. For example,
+the whole logic processing an incoming web request can be seen as operating within a single context
+of this particular web request. In a distributed or a multithreaded application it would be beneficial
+to identify logged messages produced within same context, otherwise the messages related to different
+web requests will be interleaved and understanding the flow, the cause and effect would be very difficult.
+
+To solve this problem, Mimi::Logger allows for setting an arbitrary (or random) context ID, which is local
+to the current thread, and which is included in every logged message.
+
+A new context may be initiated by `.new_context_id!`:
+
+```ruby
+require 'mimi/logger'
+
+logger = Mimi::Logger.new
+
+logger.info 'I am a banana!'
+logger.new_context_id!
+logger.info 'I am a banana!' # this is not the same banana, it's from a different context
+```
+
+Or it can be set to an explicit value:
+
+```ruby
+require 'mimi/logger'
+
+logger = Mimi::Logger.new
+
+logger.info 'I am a banana!'
+logger.context_id = 'different-context!'
+logger.info 'I am a banana!' # this is not the same banana, it's from a 'different-context!'
+
+```
+
+#### Context ID in a multithreaded application
+
+The context ID is local to a current thread, so it's safe to start or assign a different context ID
+in other threads of the application.
+
+#### Context ID in a distributed application
+
+If you have a distributed multicomponent application (e.g. microservice architecture), context ID
+may help to track requests between multiple parties. In order to achieve it, you need to generate a
+new context ID in the beginning of your processing and pass it along with all the requests/messages to
+other components of the system. Upon receiving such a request, another application sets its local context ID
+to the received value and continues.
 
 ## Contributing
 
