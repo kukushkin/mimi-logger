@@ -16,7 +16,7 @@ module Mimi
     extend Forwardable
     include Mimi::Core::Module
 
-    attr_reader :logger_instance
+    attr_reader :logger_instance, :options
     delegate [
       :debug?, :info?, :warn?, :error?, :fatal?,
       :<<, :add, :log
@@ -49,11 +49,11 @@ module Mimi
       opts ||= {}
       raise ArgumentError, '(io, opts) are expected as parameters' unless args.empty?
 
-      opts = self.class.module_options.deep_merge(opts)
+      @options = self.class.module_options.deep_merge(opts)
       @logger_instance = ::Logger.new(io)
-      @logger_instance.level = self.class.level_from_any(opts[:level])
+      @logger_instance.level = self.class.level_from_any(options[:level])
       io.sync = true if io.respond_to?(:sync=)
-      @logger_instance.formatter = self.class.formatter
+      @logger_instance.formatter = self.class.formatter(options)
     end
 
     # Returns the current log level
@@ -124,12 +124,12 @@ module Mimi
     #
     # @return [Proc]
     #
-    def self.formatter
-      case module_options[:format].to_s
+    def self.formatter(options)
+      case options[:format].to_s
       when 'json'
-        formatter_json
+        formatter_json(options)
       when 'string'
-        formatter_string
+        formatter_string(options)
       else
         raise "Invalid format specified for Mimi::Logger: '#{module_options[:format]}'"
       end
@@ -137,12 +137,14 @@ module Mimi
 
     # Returns formatter for 'json' format
     #
+    # @param options [Hash] logger options
+    #
     # @return [Proc]
     #
-    def self.formatter_json
+    def self.formatter_json(options)
       proc do |severity, _datetime, _progname, message|
         h = formatter_message_args_to_hash(message)
-        h[:c] = context_id if module_options[:log_context]
+        h[:c] = context_id if options[:log_context]
         h[:s] = severity.to_s[0]
         h.to_json
       end
@@ -150,15 +152,17 @@ module Mimi
 
     # Returns formatter for 'string' format
     #
+    # @param options [Hash] logger options
+    #
     # @return [Proc]
     #
-    def self.formatter_string
+    def self.formatter_string(options)
       proc do |severity, _datetime, _progname, message|
         h = formatter_message_args_to_hash(message)
         parts = []
         parts << severity.to_s[0]
-        parts << context_id if module_options[:log_context]
-        parts << h[:m].to_s.tr("\n", module_options[:cr_character])
+        parts << context_id if options[:log_context]
+        parts << h[:m].to_s.tr("\n", options[:cr_character])
         parts << '...' unless h.except(:m).empty?
         parts.join(', ')
       end

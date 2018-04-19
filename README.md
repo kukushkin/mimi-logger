@@ -63,6 +63,50 @@ logger.info 'Jobs done', t: Time.now - t_start
 # => '{"s":"I","m":"Jobs done","c":"60eecc2e764fe2f6", "t": 13.794034499}'
 ```
 
+### How to log structured data
+
+There are multiple ways to log an event. The first and the simplest one is to log just a text
+message:
+
+```ruby
+require 'mimi/logger'
+
+logger = Mimi::Logger.new
+
+logger.info 'I am a banana'
+# or using a block variant
+logger.debug { 'Debug this banana' }
+```
+
+Alternatively you can log a structured object, by passing a Hash in addition to the message:
+
+```ruby
+require 'mimi/logger'
+
+logger = Mimi::Logger.new
+
+logger.info 'I am a banana', banana: { id: 123, weight: 456 }
+# => {"s":"I","m":"I am a banana","c":"d8b6f859bf9d0190","banana":{"id":123,"weight":456}}
+```
+
+Or specify the object/Hash explicitly:
+```ruby
+...
+logger.info m: 'I am a banana', banana: { id: 123, weight: 456 }
+```
+
+Or with a block variant:
+```ruby
+...
+logger.debug do
+  { banana: { id: 123, weight: 456 } }
+end
+
+# a block can also return an Array of one (Hash) or two (String,Hash) elements:
+logger.debug { [m: 'Debug this banana', banana: { id: 123, weight: 456 }] }
+logger.debug { ['Debug this banana', banana: { id: 123, weight: 456 }] }
+```
+
 ### Logging context
 
 Logging context refers to a set of instructions that are somehow logically grouped. For example,
