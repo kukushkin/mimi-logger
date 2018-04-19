@@ -146,7 +146,7 @@ module Mimi
         h = formatter_message_args_to_hash(message)
         h[:c] = context_id if options[:log_context]
         h[:s] = severity.to_s[0]
-        h.to_json
+        h.to_json + "\n"
       end
     end
 
@@ -164,7 +164,7 @@ module Mimi
         parts << context_id if options[:log_context]
         parts << h[:m].to_s.tr("\n", options[:cr_character])
         parts << '...' unless h.except(:m).empty?
-        parts.join(', ')
+        parts.join(', ') + "\n"
       end
     end
 

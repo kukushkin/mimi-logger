@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Mimi::Logger, 'with json format' do
   let(:string_buffer) { StringIO.new }
-  let(:log) { string_buffer.rewind; string_buffer.readlines.join("\n") }
+  let(:log) { string_buffer.rewind; string_buffer.readlines.join }
   let(:log_parsed) { JSON.parse(log).symbolize_keys }
   let(:logger_format) { :json }
   let(:logger_log_context) { false }
@@ -21,6 +21,12 @@ describe Mimi::Logger, 'with json format' do
   it 'logs a correct JSON' do
     expect { subject.info 'message' }.to_not raise_error
     expect { log_parsed }.to_not raise_error
+  end
+
+  it 'logs two events separated by a single new line' do
+    subject.info 'message1'
+    subject.info 'message2'
+    expect(log.split("\n").size).to be 2
   end
 
   context 'logging methods' do

@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Mimi::Logger, 'with string format' do
   let(:string_buffer) { StringIO.new }
-  let(:log) { string_buffer.rewind; string_buffer.readlines.join("\n") }
+  let(:log) { string_buffer.rewind; string_buffer.readlines.join }
   let(:logger_format) { :string }
   let(:logger_log_context) { false }
 
@@ -15,6 +15,12 @@ describe Mimi::Logger, 'with string format' do
 
   it 'can be created' do
     expect { described_class.new }.to_not raise_error
+  end
+
+  it 'logs two events separated by a single new line' do
+    subject.info 'message1'
+    subject.info 'message2'
+    expect(log.split("\n").size).to be 2
   end
 
   context 'logging methods' do
