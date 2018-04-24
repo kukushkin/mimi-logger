@@ -1,3 +1,4 @@
+
 # frozen_string_literal: true
 
 require 'forwardable'
@@ -17,10 +18,9 @@ module Mimi
     include Mimi::Core::Module
 
     attr_reader :logger_instance, :options
-    delegate [
-      :debug?, :info?, :warn?, :error?, :fatal?,
-      :<<, :add, :log
-    ] => :logger_instance
+
+    delegate %i[debug? info? warn? error? fatal? << add log] => :logger_instance
+    delegate %i[context_id context_id= new_context! with_new_context with_preserved_context] => self
 
     default_options(
       format: 'json',   # 'string' or 'json'
@@ -75,23 +75,36 @@ module Mimi
 
     # Logs a new message at the corresponding logging level
     #
-    #
-    #
     def debug(*args, &block)
       logger_instance.debug(args, &block)
     end
+
+    # Logs a new message at the corresponding logging level
+    #
     def info(*args, &block)
       logger_instance.info(args, &block)
     end
+
+    # Logs a new message at the corresponding logging level
+    #
     def warn(*args, &block)
       logger_instance.warn(args, &block)
     end
+
+    # Logs a new message at the corresponding logging level
+    #
     def error(*args, &block)
       logger_instance.error(args, &block)
     end
+
+    # Logs a new message at the corresponding logging level
+    #
     def fatal(*args, &block)
       logger_instance.fatal(args, &block)
     end
+
+    # Logs a new message at the corresponding logging level
+    #
     def unknown(*args, &block)
       logger_instance.unknown(args, &block)
     end
@@ -123,6 +136,7 @@ module Mimi
     # Returns formatter Proc object depending on configured format
     #
     # @return [Proc]
+    # @private
     #
     def self.formatter(options)
       case options[:format].to_s
@@ -138,8 +152,8 @@ module Mimi
     # Returns formatter for 'json' format
     #
     # @param options [Hash] logger options
-    #
     # @return [Proc]
+    # @private
     #
     def self.formatter_json(options)
       proc do |severity, _datetime, _progname, message|
@@ -153,8 +167,8 @@ module Mimi
     # Returns formatter for 'string' format
     #
     # @param options [Hash] logger options
-    #
     # @return [Proc]
+    # @private
     #
     def self.formatter_string(options)
       proc do |severity, _datetime, _progname, message|
@@ -183,6 +197,7 @@ module Mimi
     # message and the rest are optional parameters passed in a Hash argument.
     #
     # @return [Hash]
+    # @private
     #
     def self.formatter_message_args_to_hash(message_args)
       message_args = message_args.is_a?(String) || message_args.is_a?(Hash) ? [message_args] : message_args
@@ -218,44 +233,65 @@ module Mimi
     # happening within same logical context, as a single operation. For example, processing
     # an incoming request may be seen as a single context.
     #
-    # Context ID is logged with every message
+    # Context ID is logged with every message.
     #
     # @return [String] a hex encoded context ID
     #
     def self.context_id
-      Thread.current[CONTEXT_ID_THREAD_VARIABLE] || new_context_id!
-    end
-
-    def context_id
-      self.class.context_id
+      Thread.current[CONTEXT_ID_THREAD_VARIABLE] || new_context!
     end
 
     # Sets the new context ID to the given value
     #
-    # @param id [String]
+    # @param id [String] a new context ID
+    # @return [String]
     #
     def self.context_id=(id)
       Thread.current[CONTEXT_ID_THREAD_VARIABLE] = id
     end
 
-    def context_id=(id)
-      self.class.context_id = id
-    end
-
-    # Generates a new random context ID and sets it as current
+    # Starts a new logging context, generates a new random context ID and sets it as current
     #
     # @return [String] a new context ID
     #
-    def self.new_context_id!
+    def self.new_context!
       self.context_id = SecureRandom.hex(CONTEXT_ID_SIZE)
     end
 
-    def new_context_id!
-      self.class.new_context_id!
+    # Executes a given block and ensures the context is restored afterwards
+    #
+    # @example
+    #   logger.context_id # => "5d11f7c483dcfb2a"
+    #   logger.with_preserved_context do
+    #     logger.context_id = "temporary-context"
+    #     logger.context_id # => "temporary-context"
+    #   end
+    #   logger.context_id # => "5d11f7c483dcfb2a"
+    #
+    def self.with_preserved_context(&_block)
+      preserved_context_id = context_id
+      yield
+    ensure
+      self.context_id = preserved_context_id
     end
 
-    # private-ish
+    # Executes a given block in a new context and restores the context afterwards
+    #
+    # @example
+    #   logger.context_id # => "5d11f7c483dcfb2a"
+    #   logger.with_new_context do
+    #     logger.context_id # => "e211ef95633a04b5"
+    #   end
+    #   logger.context_id # => "5d11f7c483dcfb2a"
+    #
+    def self.with_new_context(&_block)
+      with_preserved_context do
+        new_context!
+        yield
+      end
+    end
 
+    # @private
     def self.module_manifest
       {
         log_level: {

@@ -21,4 +21,46 @@ describe Mimi::Logger do
   it 'accepts level as a Symbol' do
     expect { subject.level = :info }.to_not raise_error
   end
+
+  context 'with logging context support' do
+    let(:sample_context_id) { '00ff00ff' }
+    let(:other_context_id) { 'ff00ff00' }
+
+    it { is_expected.to respond_to(:context_id) }
+    it { is_expected.to respond_to(:context_id=) }
+    it { is_expected.to respond_to(:new_context!) }
+    it { is_expected.to respond_to(:with_new_context) }
+    it { is_expected.to respond_to(:with_preserved_context) }
+
+    it 'allows setting a custom context ID' do
+      expect { subject.context_id = sample_context_id }.to_not raise_error
+      expect(subject.context_id).to eq sample_context_id
+    end
+
+    it 'allows starting a new context' do
+      expect { subject.new_context! }.to_not raise_error
+      expect { subject.new_context! }.to change { subject.context_id }
+    end
+
+    it 'allows running a block preserving context id' do
+      subject.context_id = sample_context_id
+      expect { subject.with_preserved_context {} }.to_not raise_error
+      expect { subject.with_preserved_context {} }.to_not change { subject.context_id }
+      subject.with_preserved_context do
+        subject.context_id = other_context_id
+        expect(subject.context_id).to_not eq sample_context_id
+      end
+      expect(subject.context_id).to eq sample_context_id
+    end
+
+    it 'allows running a block with a new temporary context' do
+      subject.context_id = sample_context_id
+      expect { subject.with_new_context {} }.to_not raise_error
+      expect { subject.with_new_context {} }.to_not change { subject.context_id }
+      subject.with_new_context do
+        expect(subject.context_id).to_not eq sample_context_id
+      end
+      expect(subject.context_id).to eq sample_context_id
+    end
+  end # with logging context support
 end

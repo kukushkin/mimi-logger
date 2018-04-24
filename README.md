@@ -118,7 +118,7 @@ web requests will be interleaved and understanding the flow, the cause and effec
 To solve this problem, Mimi::Logger allows for setting an arbitrary (or random) context ID, which is local
 to the current thread, and which is included in every logged message.
 
-A new context may be initiated by `.new_context_id!`:
+A new context may be initiated by `.new_context!`:
 
 ```ruby
 require 'mimi/logger'
@@ -126,7 +126,7 @@ require 'mimi/logger'
 logger = Mimi::Logger.new
 
 logger.info 'I am a banana!'
-logger.new_context_id!
+logger.new_context!
 logger.info 'I am a banana!' # this is not the same banana, it's from a different context
 ```
 
@@ -155,6 +155,40 @@ may help to track requests between multiple parties. In order to achieve it, you
 new context ID in the beginning of your processing and pass it along with all the requests/messages to
 other components of the system. Upon receiving such a request, another application sets its local context ID
 to the received value and continues.
+
+#### Preserving context
+
+If necessary, it is possible to run a block of code in another logging context and restore
+the original context after completion:
+
+```ruby
+require 'mimi/logger'
+
+logger = Mimi::Logger.new
+
+logger.context_id = 'original-context'
+logger.with_preserved_context do
+  logger.context_id = 'another-context'
+  ...
+end
+logger.context_id # => "original-context"
+```
+
+Or run a block of code with a new temporary context and restore the original one after completion:
+
+```ruby
+require 'mimi/logger'
+
+logger = Mimi::Logger.new
+
+logger.context_id = 'original-context'
+logger.with_new_context do
+  logger.context_id # => "5d11f7c483dcfb2a"
+  ...
+end
+logger.context_id # => "original-context"
+```
+
 
 ## Contributing
 
