@@ -19,8 +19,13 @@ module Mimi
         base.send(:define_singleton_method, :logger) { Mimi::Logger::Instance.instance }
       end
 
-      def self.instance
-        @logger ||= Mimi::Logger.new
+      # Returns a previously created logger instance, or initializes a new one
+      #
+      # @param args [Array] arguments to Logger initializer
+      #
+      def self.instance(*args)
+        raise 'Mimi::Logger::Instance already initialized' if @logger && !args.empty?
+        @logger ||= Mimi::Logger.new(*args)
       end
     end # module Instance
   end # class Logger
