@@ -4,6 +4,7 @@
 require 'forwardable'
 require 'logger'
 require 'json'
+require 'securerandom'
 require 'mimi/core'
 
 module Mimi
