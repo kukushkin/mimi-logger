@@ -22,12 +22,34 @@ module Mimi
     delegate %i[debug? info? warn? error? fatal? << add log] => :logger_instance
     delegate %i[context_id context_id= new_context! with_new_context with_preserved_context] => self
 
-    default_options(
-      format: 'json',   # 'string' or 'json'
-      log_context: true,
-      level: 'info',
-      cr_character: '↲' # alternative CR: ↵ ↲ ⏎
-    )
+    # Mimi::logger module manifest
+    #
+    def self.manifest
+      {
+        logger_format: {
+          desc: 'String or JSON',
+          default: 'json',
+          hidden: true
+        },
+        logger_context: {
+          desc: 'Logger will log context',
+          type: :boolean,
+          default: true,
+          hidden: true
+        },
+        logger_level: {
+          desc: 'Logger severity level threshold',
+          default: 'info',
+          type: ['debug', 'info', 'warn', 'error', 'fatal']
+        },
+        logger_cr_character: {
+          desc: 'Logger replaces new line with alternative CR character',
+          default: '↲', # alternative CR: ↵ ↲ ⏎
+          type: :string,
+          hidden: true
+        }
+      }
+    end
 
     # Creates a new Logger instance
     #
@@ -49,9 +71,12 @@ module Mimi
       opts ||= {}
       raise ArgumentError, '(io, opts) are expected as parameters' unless args.empty?
 
-      @options = self.class.module_options.deep_merge(opts)
+      # module configured?
+      self.class.configure() if self.class.options.empty?
+
+      @options = self.class.options.deep_merge(opts)
       @logger_instance = ::Logger.new(io)
-      @logger_instance.level = self.class.level_from_any(options[:level])
+      @logger_instance.level = self.class.level_from_any(options[:logger_level])
       io.sync = true if io.respond_to?(:sync=)
       @logger_instance.formatter = self.class.formatter(options)
     end
@@ -138,14 +163,14 @@ module Mimi
     # @return [Proc]
     # @private
     #
-    def self.formatter(options)
-      case options[:format].to_s
+    def self.formatter(local_options)
+      case local_options[:logger_format].to_s
       when 'json'
-        formatter_json(options)
+        formatter_json(local_options)
       when 'string'
-        formatter_string(options)
+        formatter_string(local_options)
       else
-        raise "Invalid format specified for Mimi::Logger: '#{module_options[:format]}'"
+        raise "Invalid format specified for Mimi::Logger: '#{local_options[:logger_format]}'"
       end
     end
 
@@ -155,10 +180,10 @@ module Mimi
     # @return [Proc]
     # @private
     #
-    def self.formatter_json(options)
+    def self.formatter_json(local_options)
       proc do |severity, _datetime, _progname, message|
         h = formatter_message_args_to_hash(message)
-        h[:c] = context_id if options[:log_context]
+        h[:c] = context_id if local_options[:logger_context]
         h[:s] = severity.to_s[0]
         JSON.dump(h) + "\n"
       end
@@ -170,13 +195,13 @@ module Mimi
     # @return [Proc]
     # @private
     #
-    def self.formatter_string(options)
+    def self.formatter_string(local_options)
       proc do |severity, _datetime, _progname, message|
         h = formatter_message_args_to_hash(message)
         parts = []
         parts << severity.to_s[0]
-        parts << context_id if options[:log_context]
-        parts << h[:m].to_s.tr("\n", options[:cr_character])
+        parts << context_id if local_options[:logger_context]
+        parts << h[:m].to_s.tr("\n", local_options[:logger_cr_character])
         parts << '...' unless h.except(:m).empty?
         parts.join(', ') + "\n"
       end
@@ -289,16 +314,6 @@ module Mimi
         new_context!
         yield
       end
-    end
-
-    # @private
-    def self.module_manifest
-      {
-        log_level: {
-          desc: 'Logging level (any of the "debug", "info", "warn", "error", "fatal")',
-          default: 'info'
-        }
-      }
     end
   end # class Logger
 end # module Mimi

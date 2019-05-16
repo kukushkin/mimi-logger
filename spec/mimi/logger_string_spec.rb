@@ -7,8 +7,8 @@ describe Mimi::Logger, 'with string format' do
   let(:logger_log_context) { false }
 
   before do
-    described_class.module_options[:format] = logger_format
-    described_class.module_options[:log_context] = logger_log_context
+    described_class.options[:logger_format] = logger_format
+    described_class.options[:logger_context] = logger_log_context
   end
 
   subject { described_class.new(string_buffer) }
