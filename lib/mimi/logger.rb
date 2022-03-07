@@ -139,24 +139,12 @@ module Mimi
     #
     # @param value [String,Symbol,Integer]
     #
-    def self.level_from_any(value)
+ j   def self.level_from_any(value)
       return value if value.is_a?(Integer)
-      case value.to_s.downcase.to_sym
-      when :debug
-        ::Logger::DEBUG
-      when :info
-        ::Logger::INFO
-      when :warn
-        ::Logger::WARN
-      when :error
-        ::Logger::ERROR
-      when :fatal
-        ::Logger::FATAL
-      when :unknown
-        ::Logger::UNKNOWN
-      else
-        raise ArgumentError, "Invalid value for the log level: '#{value}'"
-      end
+
+      ::Logger.const_get(value.to_s.upcase.to_sym)
+    rescue NameError
+      raise ArgumentError, "Invalid value for the log level: '#{value}'"
     end
 
     # Returns formatter Proc object depending on configured format
