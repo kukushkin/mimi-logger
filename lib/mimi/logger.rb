@@ -139,7 +139,7 @@ module Mimi
     #
     # @param value [String,Symbol,Integer]
     #
-   def self.level_from_any(value)
+    def self.level_from_any(value)
       return value if value.is_a?(Integer)
 
       ::Logger.const_get(value.to_s.upcase.to_sym)
