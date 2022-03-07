@@ -63,4 +63,38 @@ describe Mimi::Logger do
       expect(subject.context_id).to eq sample_context_id
     end
   end # with logging context support
+
+  describe '.level_from_any' do
+    it 'can be called with a number' do
+      expect(described_class.level_from_any(1)).to eq(1)
+    end
+
+    it 'can be called with :debug' do
+      expect(described_class.level_from_any('debug')).to eq(::Logger::DEBUG)
+    end
+
+    it 'can be called with info' do
+      expect(described_class.level_from_any('info')).to eq(::Logger::INFO)
+    end
+
+    it 'can be called with warn' do
+      expect(described_class.level_from_any('warn')).to eq(::Logger::WARN)
+    end
+
+    it 'can be called with error' do
+      expect(described_class.level_from_any('error')).to eq(::Logger::ERROR)
+    end
+
+    it 'can be called with error' do
+      expect(described_class.level_from_any('fatal')).to eq(::Logger::FATAL)
+    end
+
+    it 'can be called with unknown' do
+      expect(described_class.level_from_any('unknown')).to eq(::Logger::UNKNOWN)
+    end
+
+    it 'cannot be called with random' do
+      expect { described_class.level_from_any('random') }.to raise_error(ArgumentError)
+    end
+  end
 end
